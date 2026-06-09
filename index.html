@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Will you go on a date with me?</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet" />
+  <style>
+
+    :root {
+      --rose:    #e8435a;
+      --blush:   #f7a8b8;
+      --cream:   #fff5f7;
+      --deep:    #2d0a14;
+      --gold:    #c9956e;
+      --soft:    #fce4ec;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html {
+      scroll-behavior: smooth;
+    }
+    body {
+      font-family: 'Lato', sans-serif;
+      background: var(--cream);
+      color: var(--deep);
+      min-height: 100vh;
+      min-height: 100svh;
+      overflow-y: auto;
+      overflow-x: hidden;
+      position: relative;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* ── Floating hearts background ── */
+    .hearts-bg {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .heart-float {
+      position: absolute;
+      bottom: -60px;
+      font-size: 1.4rem;
+      opacity: 0;
+      animation: floatUp linear infinite;
+    }
+    @keyframes floatUp {
+      0%   { transform: translateY(0) rotate(0deg); opacity: 0; }
+      10%  { opacity: 0.6; }
+      90%  { opacity: 0.4; }
+      100% { transform: translateY(-110vh) rotate(360deg); opacity: 0; }
+    }
+
+    /* ── Pages ── */
+    .page {
+      display: none;
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      min-height: 100svh;
+      align-items: center;
+      justify-content: flex-start;
+      flex-direction: column;
+      padding: 3rem 1.5rem 4rem;
+      text-align: center;
+      animation: fadeIn 0.6s ease;
+    }
+    .page.active { display: flex; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Typography ── */
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 6vw, 3.8rem);
+      color: var(--rose);
+      line-height: 1.2;
+      margin-bottom: 0.5rem;
+    }
+    h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.4rem, 4vw, 2.4rem);
+      color: var(--rose);
+    }
+    p {
+      color: var(--gold);
+      font-size: 1.1rem;
+      margin-top: 0.5rem;
+    }
+
+    /* ── Card container ── */
+    .card {
+      background: #fff;
+      border-radius: 24px;
+      padding: 2.5rem 2.5rem;
+      box-shadow: 0 8px 40px rgba(232,67,90,0.18);
+      max-width: 560px;
+      width: 100%;
+      margin-top: 1.5rem;
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-block;
+      padding: 0.75rem 2.2rem;
+      min-height: 48px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      font-family: 'Lato', sans-serif;
+      font-weight: 700;
+      font-size: 1.05rem;
+      transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--rose), #c0392b);
+      color: #fff;
+      box-shadow: 0 4px 20px rgba(232,67,90,0.4);
+    }
+    .btn-primary:hover {
+      transform: scale(1.06);
+      box-shadow: 0 6px 28px rgba(232,67,90,0.55);
+    }
+    .btn-outline {
+      background: transparent;
+      border: 2px solid var(--rose);
+      color: var(--rose);
+    }
+    .btn-outline:hover { background: var(--soft); }
+
+    /* ── Page 1: YES/NO ── */
+    #page1 .btn-area {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1.2rem;
+      position: relative;
+      margin-top: 2rem;
+      width: 100%;
+      min-height: 160px;
+    }
+    #btn-yes {
+      background: linear-gradient(135deg, var(--rose), #c0392b);
+      color: #fff;
+      box-shadow: 0 4px 20px rgba(232,67,90,0.4);
+      font-size: 1.05rem;
+      padding: 0.75rem 2.2rem;
+      white-space: nowrap;
+      position: relative;
+      z-index: 1;
+    }
+    #btn-yes:hover {
+      transform: scale(1.08);
+      box-shadow: 0 8px 32px rgba(232,67,90,0.6);
+    }
+    #btn-no {
+      background: #f0f0f0;
+      color: #999;
+      font-size: 1.05rem;
+      padding: 0.75rem 2.2rem;
+      white-space: nowrap;
+      user-select: none;
+    }
+    #btn-no.is-escaping {
+      position: absolute;
+      transition: left 0.15s ease, top 0.15s ease;
+    }
+
+    /* ── Page 2: Reaction ── */
+    #page2 .emoji-burst {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+      animation: bounce 1s infinite alternate;
+    }
+    @keyframes bounce {
+      from { transform: translateY(0) rotate(-5deg); }
+      to   { transform: translateY(-12px) rotate(5deg); }
+    }
+    #page2 h1 {
+      font-size: clamp(1.6rem, 5vw, 2.8rem);
+    }
+    #page2 .sub {
+      font-style: italic;
+      color: var(--blush);
+      margin: 0.5rem 0 1.5rem;
+    }
+
+    /* ── Page 3: Date & Time ── */
+    #page3 .form-group {
+      text-align: left;
+      margin-top: 1.6rem;
+    }
+    #page3 label {
+      display: block;
+      font-weight: 700;
+      color: var(--rose);
+      margin-bottom: 0.5rem;
+      font-size: 0.95rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    #page3 select, #page3 .date-grid {
+      width: 100%;
+    }
+    .date-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 0.6rem;
+    }
+    .date-grid select, #time-select {
+      width: 100%;
+      padding: 0.75rem 0.9rem;
+      min-height: 48px;
+      border: 2px solid var(--blush);
+      border-radius: 12px;
+      background: var(--soft);
+      color: var(--deep);
+      font-family: 'Lato', sans-serif;
+      font-size: 1rem;
+      appearance: none;
+      -webkit-appearance: none;
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .date-grid select:focus, #time-select:focus {
+      border-color: var(--rose);
+    }
+    #page3 .btn-primary { margin-top: 2rem; width: 100%; }
+
+    /* ── Page 4: Food ── */
+    #page4 .food-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+      margin-top: 1.8rem;
+    }
+    .food-btn {
+      background: var(--soft);
+      border: 2.5px solid transparent;
+      border-radius: 16px;
+      padding: 1.1rem 0.8rem;
+      cursor: pointer;
+      font-family: 'Lato', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--deep);
+      transition: all 0.22s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .food-btn .food-emoji { font-size: 2.2rem; }
+    .food-btn:hover {
+      border-color: var(--rose);
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(232,67,90,0.18);
+    }
+    .food-btn.selected {
+      border-color: var(--rose);
+      background: linear-gradient(135deg, #ffe0e6, #fce4ec);
+      box-shadow: 0 4px 16px rgba(232,67,90,0.25);
+      transform: scale(1.04);
+    }
+    .food-btn.selected .food-emoji {
+      animation: wiggle 0.4s ease;
+    }
+    @keyframes wiggle {
+      0%   { transform: rotate(0); }
+      25%  { transform: rotate(-12deg); }
+      75%  { transform: rotate(12deg); }
+      100% { transform: rotate(0); }
+    }
+    #page4 .btn-primary { margin-top: 1.5rem; width: 100%; }
+
+    /* ── Page 5: Summary ── */
+    #page5 h1 { font-size: clamp(2.2rem, 6vw, 3.5rem); margin-bottom: 0.3rem; }
+    #page5 .heart-big {
+      font-size: 3.5rem;
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50%       { transform: scale(1.15); }
+    }
+    .summary-card {
+      background: linear-gradient(135deg, #fff5f7, #fff);
+      border: 2px solid var(--blush);
+      border-radius: 18px;
+      padding: 1.6rem 2rem;
+      margin-top: 1.5rem;
+      text-align: left;
+    }
+    .summary-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.8rem;
+      padding: 0.65rem 0;
+      border-bottom: 1px dashed var(--blush);
+      font-size: 1.02rem;
+    }
+    .summary-row:last-child { border-bottom: none; }
+    .summary-icon { font-size: 1.3rem; flex-shrink: 0; }
+    .summary-label {
+      font-weight: 700;
+      color: var(--rose);
+      min-width: 72px;
+    }
+    .summary-value { color: var(--deep); }
+    .copy-btn {
+      margin-top: 1.4rem;
+      width: 100%;
+      background: linear-gradient(135deg, var(--rose), #c0392b);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      font-size: 1.05rem;
+      padding: 0.85rem;
+    }
+    .copy-btn:hover { transform: scale(1.03); }
+    .copy-feedback {
+      margin-top: 0.7rem;
+      font-size: 0.9rem;
+      color: var(--rose);
+      opacity: 0;
+      transition: opacity 0.3s;
+      font-style: italic;
+    }
+    .copy-feedback.show { opacity: 1; }
+
+    /* ── Confetti canvas ── */
+    #confetti-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 99;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      .card { padding: 1.8rem 1.2rem; }
+      .date-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 400px) {
+      .card { padding: 1.4rem 1rem; }
+      .date-grid { grid-template-columns: 1fr; }
+      #page4 .food-grid { grid-template-columns: 1fr 1fr; gap: 0.7rem; }
+      .food-btn { padding: 0.9rem 0.5rem; font-size: 0.9rem; }
+      .food-btn .food-emoji { font-size: 1.8rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Floating hearts -->
+<div class="hearts-bg" id="hearts-bg"></div>
+<canvas id="confetti-canvas"></canvas>
+
+<!-- ══════════════════ PAGE 1 ══════════════════ -->
+<section class="page active" id="page1">
+  <div class="card">
+    <div style="font-size:3rem;margin-bottom:0.8rem;">💌</div>
+    <h1>Will you go on a date with me?</h1>
+    <p>I promise I'm fun (mostly).</p>
+    <div class="btn-area" id="btn-area">
+      <button class="btn" id="btn-yes" onclick="goTo('page2')">Yes ❤️</button>
+      <button class="btn" id="btn-no">No</button>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ PAGE 2 ══════════════════ -->
+<section class="page" id="page2">
+  <div class="card">
+    <div class="emoji-burst">🥹🎉</div>
+    <h1>WAIT WHAT — YOU ACTUALLY SAID YES?!</h1>
+    <p class="sub">Okay okay okay I need a second to breathe...</p>
+    <p>Alright I'm good. Let's make this happen.</p>
+    <div style="margin-top:2rem;">
+      <button class="btn btn-primary" onclick="goTo('page3')">Let's plan it ✨</button>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ PAGE 3 ══════════════════ -->
+<section class="page" id="page3">
+  <div class="card">
+    <div style="font-size:2.2rem;margin-bottom:0.5rem;">📅</div>
+    <h2>So... when are you free?</h2>
+    <p>Pick a day that works for you.</p>
+
+    <div class="form-group">
+      <label>Date</label>
+      <div class="date-grid">
+        <select id="sel-month">
+          <option value="">Month</option>
+        </select>
+        <select id="sel-day">
+          <option value="">Day</option>
+        </select>
+        <select id="sel-year">
+          <option value="">Year</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-top:1.2rem;">
+      <label>Time</label>
+      <select id="time-select">
+        <option value="">Pick a time</option>
+      </select>
+    </div>
+
+    <button class="btn btn-primary" onclick="submitDate()">Looks good 💕</button>
+  </div>
+</section>
+
+<!-- ══════════════════ PAGE 4 ══════════════════ -->
+<section class="page" id="page4">
+  <div class="card">
+    <div style="font-size:2.2rem;margin-bottom:0.5rem;">🍽️</div>
+    <h2>What are we feeling?</h2>
+    <p>Pick your vibe for the night.</p>
+
+    <div class="food-grid" id="food-grid">
+      <button class="food-btn" data-food="Pizza" onclick="selectFood(this)">
+        <span class="food-emoji">🍕</span>Pizza
+      </button>
+      <button class="food-btn" data-food="Pasta" onclick="selectFood(this)">
+        <span class="food-emoji">🍝</span>Pasta
+      </button>
+      <button class="food-btn" data-food="Sushi" onclick="selectFood(this)">
+        <span class="food-emoji">🍣</span>Sushi
+      </button>
+      <button class="food-btn" data-food="Tacos" onclick="selectFood(this)">
+        <span class="food-emoji">🌮</span>Tacos
+      </button>
+      <button class="food-btn" data-food="Somewhere boujee 🥂" onclick="selectFood(this)">
+        <span class="food-emoji">✨</span>Somewhere boujee
+      </button>
+      <button class="food-btn" data-food="Somewhere chill 😌" onclick="selectFood(this)">
+        <span class="food-emoji">☁️</span>Somewhere chill
+      </button>
+    </div>
+
+    <button class="btn btn-primary" onclick="submitFood()" id="food-next-btn" disabled
+      style="opacity:0.5;cursor:not-allowed;">
+      This is the one 💖
+    </button>
+  </div>
+</section>
+
+<!-- ══════════════════ PAGE 5 ══════════════════ -->
+<section class="page" id="page5">
+  <div class="card" style="max-width:560px;">
+    <div class="heart-big">❤️</div>
+    <h1>It's a date.</h1>
+    <p>Here's everything, all locked in.</p>
+
+    <div class="summary-card">
+      <div class="summary-row">
+        <span class="summary-icon">📅</span>
+        <span class="summary-label">Date</span>
+        <span class="summary-value" id="sum-date">—</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-icon">🕐</span>
+        <span class="summary-label">Time</span>
+        <span class="summary-value" id="sum-time">—</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-icon">🍽️</span>
+        <span class="summary-label">Food</span>
+        <span class="summary-value" id="sum-food">—</span>
+      </div>
+    </div>
+
+    <button class="btn copy-btn" onclick="copyDetails()">
+      📋 Copy & send to them
+    </button>
+    <div class="copy-feedback" id="copy-feedback">Copied! Now send it 💌</div>
+  </div>
+</section>
+
+<script>
+// ─── State ───────────────────────────────────────
+const state = { date: '', time: '', food: '' };
+
+// ─── Floating hearts ─────────────────────────────
+(function spawnHearts() {
+  const container = document.getElementById('hearts-bg');
+  const emojis = ['❤️','🩷','💕','💗','💖','💝','🌹','✨'];
+  for (let i = 0; i < 18; i++) {
+    const h = document.createElement('span');
+    h.className = 'heart-float';
+    h.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    h.style.left = Math.random() * 100 + 'vw';
+    h.style.fontSize = (0.9 + Math.random() * 1.4) + 'rem';
+    h.style.animationDuration = (8 + Math.random() * 14) + 's';
+    h.style.animationDelay = (Math.random() * 12) + 's';
+    container.appendChild(h);
+  }
+})();
+
+// ─── Page navigation ─────────────────────────────
+function goTo(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'instant' });
+  if (id === 'page5') launchConfetti();
+}
+
+// ─── Page 1: No button escape ────────────────────
+(function initNoButton() {
+  const noBtn = document.getElementById('btn-no');
+  const area  = document.getElementById('btn-area');
+  let escaped = false;
+  let lastX = null, lastY = null;
+
+  function escape() {
+    if (!escaped) {
+      escaped = true;
+      // Snapshot current position relative to area before going absolute
+      const areaRect = area.getBoundingClientRect();
+      const btnRect  = noBtn.getBoundingClientRect();
+      const startX   = btnRect.left - areaRect.left;
+      const startY   = btnRect.top  - areaRect.top;
+      noBtn.classList.add('is-escaping');
+      noBtn.style.left = startX + 'px';
+      noBtn.style.top  = startY + 'px';
+      lastX = startX;
+      lastY = startY;
+    }
+
+    const aw = area.offsetWidth;
+    const ah = area.offsetHeight;
+    const bw = noBtn.offsetWidth;
+    const bh = noBtn.offsetHeight;
+
+    let x, y, tries = 0;
+    do {
+      x = Math.random() * (aw - bw);
+      y = Math.random() * (ah - bh);
+      tries++;
+    } while (
+      tries < 10 &&
+      lastX !== null &&
+      Math.abs(x - lastX) < bw * 1.5 &&
+      Math.abs(y - lastY) < bh * 1.5
+    );
+
+    lastX = x;
+    lastY = y;
+    noBtn.style.left = x + 'px';
+    noBtn.style.top  = y + 'px';
+  }
+
+  noBtn.addEventListener('mouseenter', escape);
+  noBtn.addEventListener('touchstart', function(e) {
+    e.preventDefault(); // stops tap from completing while button flees
+    escape();
+  }, { passive: false });
+})();
+
+// ─── Page 3: Populate date/time selects ──────────
+(function buildDateSelects() {
+  const months = ['January','February','March','April','May','June',
+                  'July','August','September','October','November','December'];
+  const mSel = document.getElementById('sel-month');
+  const dSel = document.getElementById('sel-day');
+  const ySel = document.getElementById('sel-year');
+
+  months.forEach((m, i) => {
+    const o = document.createElement('option');
+    o.value = i + 1; o.textContent = m;
+    mSel.appendChild(o);
+  });
+
+  function updateDays() {
+    const m = parseInt(mSel.value);
+    const y = parseInt(ySel.value) || new Date().getFullYear();
+    const days = m ? new Date(y, m, 0).getDate() : 31;
+    const prev = dSel.value;
+    dSel.innerHTML = '<option value="">Day</option>';
+    for (let d = 1; d <= days; d++) {
+      const o = document.createElement('option');
+      o.value = d; o.textContent = d;
+      dSel.appendChild(o);
+    }
+    if (prev && prev <= days) dSel.value = prev;
+  }
+
+  const curYear = new Date().getFullYear();
+  for (let y = curYear; y <= curYear + 3; y++) {
+    const o = document.createElement('option');
+    o.value = y; o.textContent = y;
+    ySel.appendChild(o);
+  }
+
+  mSel.addEventListener('change', updateDays);
+  ySel.addEventListener('change', updateDays);
+  updateDays();
+
+  // Time: 30-min intervals
+  const tSel = document.getElementById('time-select');
+  for (let h = 0; h < 24; h++) {
+    for (let m = 0; m < 60; m += 30) {
+      const ampm = h < 12 ? 'AM' : 'PM';
+      const h12  = h % 12 === 0 ? 12 : h % 12;
+      const mm   = m === 0 ? '00' : '30';
+      const o    = document.createElement('option');
+      o.value    = `${h12}:${mm} ${ampm}`;
+      o.textContent = `${h12}:${mm} ${ampm}`;
+      tSel.appendChild(o);
+    }
+  }
+})();
+
+function submitDate() {
+  const m    = document.getElementById('sel-month');
+  const d    = document.getElementById('sel-day');
+  const y    = document.getElementById('sel-year');
+  const t    = document.getElementById('time-select');
+  if (!m.value || !d.value || !y.value || !t.value) {
+    alert('Please fill in both a date and a time 💕');
+    return;
+  }
+  const months = ['January','February','March','April','May','June',
+                  'July','August','September','October','November','December'];
+  state.date = `${months[m.value - 1]} ${d.value}, ${y.value}`;
+  state.time = t.value;
+  goTo('page4');
+}
+
+// ─── Page 4: Food selection ───────────────────────
+function selectFood(btn) {
+  document.querySelectorAll('.food-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  state.food = btn.dataset.food;
+  const nextBtn = document.getElementById('food-next-btn');
+  nextBtn.disabled = false;
+  nextBtn.style.opacity = '1';
+  nextBtn.style.cursor  = 'pointer';
+}
+
+function submitFood() {
+  if (!state.food) return;
+  document.getElementById('sum-date').textContent = state.date;
+  document.getElementById('sum-time').textContent = state.time;
+  document.getElementById('sum-food').textContent = state.food;
+  goTo('page5');
+}
+
+// ─── Page 5: Copy ────────────────────────────────
+function copyDetails() {
+  const text =
+    `🌹 It's a Date! 🌹\n` +
+    `📅 Date: ${state.date}\n` +
+    `🕐 Time: ${state.time}\n` +
+    `🍽️  Food: ${state.food}\n` +
+    `\nSee you then! 💌`;
+
+  function showFeedback() {
+    const fb = document.getElementById('copy-feedback');
+    fb.classList.add('show');
+    setTimeout(() => fb.classList.remove('show'), 3000);
+  }
+
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(showFeedback);
+  } else {
+    // Fallback for HTTP or older mobile browsers
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;left:-9999px;top:-9999px;opacity:0';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    try { document.execCommand('copy'); showFeedback(); } catch (_) {}
+    document.body.removeChild(ta);
+  }
+}
+
+// ─── Confetti ────────────────────────────────────
+function launchConfetti() {
+  const canvas = document.getElementById('confetti-canvas');
+  const ctx    = canvas.getContext('2d');
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const pieces = Array.from({ length: 120 }, () => ({
+    x:    Math.random() * canvas.width,
+    y:    Math.random() * -canvas.height,
+    r:    4 + Math.random() * 6,
+    d:    2 + Math.random() * 4,
+    color: ['#e8435a','#f7a8b8','#c9956e','#ff6b6b','#ffd6e0','#ffb3c1'][Math.floor(Math.random() * 6)],
+    tilt: Math.random() * 10 - 5,
+    tiltSpeed: 0.08 + Math.random() * 0.08
+  }));
+
+  let angle = 0;
+  let frame;
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    angle += 0.01;
+    pieces.forEach(p => {
+      p.y += p.d;
+      p.tilt += p.tiltSpeed;
+      if (p.y > canvas.height) { p.y = -20; p.x = Math.random() * canvas.width; }
+      ctx.beginPath();
+      ctx.fillStyle = p.color;
+      ctx.ellipse(p.x + Math.sin(angle) * 2, p.y, p.r, p.r * 0.4, p.tilt, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    frame = requestAnimationFrame(draw);
+  }
+  draw();
+  setTimeout(() => { cancelAnimationFrame(frame); ctx.clearRect(0, 0, canvas.width, canvas.height); }, 4500);
+}
+</script>
+</body>
+</html>
